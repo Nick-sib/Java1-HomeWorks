@@ -20,7 +20,7 @@ public class Lesson3_TaskExt2 {
 
     static BigInteger sumSqwrVer2(int val) {
         //решение через массив позволит сократить кол-во операций но сожрёт больше памяти
-        //ждать расчет числа 10000 утомительно поэтому память не желеем
+        //ждать расчет числа 10000 утомительно поэтому память не жалеем
         if (val < 2)
             return new BigInteger(String.valueOf(val * 4));
         BigInteger[] fib = new BigInteger[val + 1];
