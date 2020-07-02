@@ -8,7 +8,7 @@ public class Lesson3_TaskExt1 {
 
     enum Directions {
         DOWN,
-        RIHT,
+        RIHT, //написано с ошибкой но по ширине смотрица лучше
         UP  ,
         LEFT;
 //данный метод моджно заложить в ArrayState, но так проще изменять направления спирали
