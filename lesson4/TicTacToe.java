@@ -3,8 +3,7 @@
  * 1. main() -> initMap() - инициализация массива
  * -------------------------------------------
  * 2. main() -> printMap() - печать массива
- * 3. printMap() -> printMapHeader() - печать впервой строки вывода
- * 4. printMap() -> printMapRows() - печать остальной части массива
+ * 3. printMap() -> объеденил
  * -------------------------------------------
  * 5. main() -> playGame() - запуск игры. 2 части: человек и машина
  * * -------------------------------------------
@@ -23,13 +22,14 @@
 
 package lesson4;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
 public class TicTacToe {
 
-    public static final int SIZE = 3;
-    public static final int DOTS_TO_WIN = 3;
+    public static final int SIZE = 5;
+    public static final int DOTS_TO_WIN = 4;
 
     public static final char DOT_EMPTY = '•';
     public static final char DOT_HUMAN = 'X';
@@ -40,6 +40,9 @@ public class TicTacToe {
     public static char[][] map = new char[SIZE][SIZE];
     public static Scanner scanner = new Scanner(System.in);
     public static Random random = new Random();
+
+    static int humanRowNumber, humanColNumber,
+               aiRowNumber, aiColNumber;
 
     public static void main(String[] args) {
 
@@ -59,13 +62,13 @@ public class TicTacToe {
         while (true) {
             humanTurn();
             printMap();
-            if (checkEnd(DOT_HUMAN, "Вы выиграли!")) {
+            if (checkEnd(humanRowNumber,humanColNumber, "Вы выиграли!")) {
                 System.exit(0);
             }
 
             aiTurn();
             printMap();
-            if (checkEnd(DOT_AI, "К сожалению, Вы проиграли...")) {
+            if (checkEnd(aiRowNumber, aiColNumber,"К сожалению, Вы проиграли...")) {
                 System.exit(0);
             }
 
@@ -73,32 +76,19 @@ public class TicTacToe {
     }
 
     public static void initMap() {
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                map[i][j] = DOT_EMPTY;
-            }
+        for (char[] line : map) {
+            Arrays.fill(line, DOT_EMPTY);
         }
     }
 
     public static void printMap() {
-        printMapHeader();
-
-        printMapRows();
-    }
-
-    public static void printMapHeader() {
+        //не вижу большого смысла отдельно печатать шапки и тела
         System.out.print(FIRST_EMPTY_CHAR);
         for (int i = 0; i < SIZE; i++) {
             printNumber(i);
         }
         System.out.println();
-    }
 
-    public static void printNumber(int i) {
-        System.out.print(i + 1 + EMPTY);
-    }
-
-    public static void printMapRows() {
         for (int i = 0; i < SIZE; i++) {
             printNumber(i);
             for (int j = 0; j < SIZE; j++) {
@@ -109,19 +99,34 @@ public class TicTacToe {
         System.out.println();
     }
 
+    public static void printNumber(int i) {
+        System.out.print(i + 1 + EMPTY);
+    }
+
+
     private static void humanTurn() {
-        int rowNumber, colNumber;
-
+        //Добавил проверку ввода не числа
+        System.out.println("Ход пользователя! Введите номера строки и столбца");
         do {
-            System.out.println("Ход пользователя! Введите номера строки и столбца");
-            System.out.print("Строка = ");
-            rowNumber = scanner.nextInt();
-            System.out.print("Столбец = ");
-            colNumber = scanner.nextInt();
+            humanRowNumber = iputValue(String.format("Введите номер с строки [1..%s] ",SIZE));
+            humanColNumber = iputValue(String.format("Введите номер с столбца [1..%s] ",SIZE));
+        } while (!isCellValid(humanRowNumber, humanColNumber, DOT_HUMAN));
 
-        } while (!isCellValid(rowNumber, colNumber, DOT_HUMAN));
+        map[humanRowNumber - 1][humanColNumber - 1] = DOT_HUMAN;
+    }
 
-        map[rowNumber - 1][colNumber - 1] = DOT_HUMAN;
+    private static int iputValue(String invateSTR) {
+        String val;
+        do {
+            System.out.print(invateSTR);
+            val = scanner.next();
+        } while (!checkInputValue(val, '1', String.valueOf(SIZE).charAt(0)));
+        return Integer.parseInt(val);
+    }
+
+    private static boolean checkInputValue(String value, char min, char max) {
+        //По заданию предпологаюся размеры массива 3 и 5 поэтому тип переменных один символ
+        return value.length() == 1 && value.charAt(0) >= min && value.charAt(0) <= max;
     }
 
     private static boolean isCellValid(int rowNumber, int colNumber, char symbol) {
@@ -139,27 +144,23 @@ public class TicTacToe {
             System.out.println("\nВы выбрали занятую ячейку");
             return false;
         }
-
         return true;
     }
 
     private static void aiTurn() {
-        int rowNumber, colNumber;
+        //int rowNumber, colNumber;
 
         do {
-            rowNumber = random.nextInt(SIZE) + 1;
-            colNumber = random.nextInt(SIZE) + 1;
+            aiRowNumber = random.nextInt(SIZE) + 1;
+            aiColNumber = random.nextInt(SIZE) + 1;
 
-        } while (!isCellValid(rowNumber, colNumber, DOT_AI));
+        } while (!isCellValid(aiRowNumber, aiColNumber, DOT_AI));
 
-        map[rowNumber - 1][colNumber - 1] = DOT_AI;
+        map[aiRowNumber - 1][aiColNumber - 1] = DOT_AI;
     }
 
-    private static boolean checkEnd(char symbol, String winMessage) {
-        
-
-
-        if (checkWin(symbol)) {
+    private static boolean checkEnd(int row, int col, String winMessage) {
+        if (checkWin(row-1, col-1)) {
             System.out.println(winMessage);
             return true;
         }
@@ -172,18 +173,45 @@ public class TicTacToe {
         return false;
     }
 
-    private static boolean checkWin(char symbol) {
-        if (map[0][0] == symbol && map[0][1] == symbol && map[0][2] == symbol) return true;
-        if (map[1][0] == symbol && map[1][1] == symbol && map[1][2] == symbol) return true;
-        if (map[2][0] == symbol && map[2][1] == symbol && map[2][2] == symbol) return true;
-
-        if (map[0][0] == symbol && map[2][0] == symbol && map[2][0] == symbol) return true;
-        if (map[0][1] == symbol && map[1][1] == symbol && map[2][1] == symbol) return true;
-        if (map[0][2] == symbol && map[1][2] == symbol && map[2][2] == symbol) return true;
-
-        if (map[0][2] == symbol && map[1][1] == symbol && map[2][2] == symbol) return true;
-        if (map[0][2] == symbol && map[1][1] == symbol && map[0][2] == symbol) return true;
+    private static boolean checkWin(int row, int col) {
+        char symbol = map[row][col];
+        int delta = DOTS_TO_WIN - 1;
+        //проверяем горизонтать
+        int count = 0;
+        for (int i = Math.max(0,row - delta); i < Math.min(row + delta, SIZE); i++) {
+            if (map[i][col] == symbol) count++;
+            else count = 0;
+            if (count >= DOTS_TO_WIN) return true;
+        }
+        //проверяем вертикаль
+        count = 0;
+        for (int i = Math.max(0,col - delta); i < Math.min(col + delta, SIZE); i++) {
+            if (map[row][i] == symbol) count++;
+            else count = 0;
+            if (count >= DOTS_TO_WIN) return true;
+        }
+        //проверяем основную диагональ
+        count = 0;
+        for (int i = 1 - DOTS_TO_WIN; i < DOTS_TO_WIN; i++) {
+            if (inRange(row+i, col+i))
+                if (map[row+i][col+i] == symbol) count++;
+                else count = 0;
+            if (count >= DOTS_TO_WIN) return true;
+        }
+        //проверяем доп диагональ
+        count = 0;
+        for (int i = 1 - DOTS_TO_WIN; i < DOTS_TO_WIN; i++) {
+            if (inRange(row+i, col-i))
+                if (map[row+i][col-i] == symbol) count++;
+                else count = 0;
+            if (count >= DOTS_TO_WIN) return true;
+        }
         return false;
+    }
+
+    private static boolean inRange(int row, int col) {
+        //проверяем ранг координаты
+        return row > -1 && row < SIZE && col > -1 && col < SIZE;
     }
 
     private static boolean isMapFull() {
